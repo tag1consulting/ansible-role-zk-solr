@@ -1,0 +1,16 @@
+---
+- name: include java role
+  include_role:
+    name: "geerlingguy.java"
+  vars:
+    ansible_become: true
+
+- name: "Configure Zookeeper"
+  include_tasks: zookeeper.yml
+  vars:
+    ansible_become: true
+
+- name: "Configure Solr"
+  include_tasks: solr.yml
+  vars:
+    ansible_become: true

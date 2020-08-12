@@ -1,0 +1,162 @@
+---
+- name: Get and set solr_checksum and solr_checksum_algo
+  block:
+    - name: Set solr_algo
+      set_fact:
+        solr_checksum_algo: "{{ 'sha1' if solr_version is version('7.3.1', '<') else 'sha512' }}"
+
+    - name: Get Checksum
+      uri:
+        url: "{{ item }}/{{ solr_version }}/solr-{{ solr_version }}.tgz.{{ solr_checksum_algo }}"
+        return_content: yes
+      loop: "{{ solr_mirrors }}"
+      register: _solr_checksum
+      ignore_errors: true
+
+    - name: Set solr_checksum
+      set_fact:
+        solr_checksum: "{{ item.content.split(' ')[0] }}"
+      when: item.failed == false
+      loop: "{{ _solr_checksum.results }}"
+  when: not solr_checksum_algo or not solr_checksum
+
+- name: Assert solr_checksum and solr_checksum_algo are defined
+  assert:
+    that:
+      - solr_checksum != ""
+      - solr_checksum_algo != ""
+
+- name: Install OS packages
+  yum:
+    name:
+      - lsof
+      - acl
+      - sudo
+    state: present
+
+- name: Create Solr group
+  group:
+    name: "{{ solr_user }}"
+    system: yes
+
+- name: Create Solr user
+  user:
+    name: "{{ solr_user }}"
+    group: "{{ solr_user }}"
+    system: yes
+
+- name: Confirm src dir
+  file:
+    path: "{{ solr_tar_dir }}"
+    state: directory
+
+- name: "Create Solr {{ item }} dir"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ solr_user }}"
+    group: "{{ solr_user }}"
+  with_items:
+    - "{{ solr_dir }}"
+    - "{{ solr_data_dir }}"
+    - "{{ solr_data_dir }}/data"
+    - "{{ solr_data_dir }}/logs"
+
+- name: Check if Solr installed
+  stat:
+    path: "{{ solr_dir }}/bin"
+  register: solr_installed
+
+- name: Install Solr
+  block:
+    - name: Download Solr tarball
+      get_url:
+        url: "{{ item }}/{{ solr_version }}/solr-{{ solr_version }}.tgz"
+        dest: "{{ solr_tar_dir }}/solr-{{ solr_version }}.tgz"
+        checksum: "{{ solr_checksum_algo }}:{{ solr_checksum }}"
+      register: solr_down_res
+      ignore_errors: true
+      when: solr_down_res is undefined or solr_down_res.failed
+      with_items: "{{ solr_mirrors }}"
+
+    - name: Untar Solr
+      unarchive:
+        src: "{{ solr_tar_dir }}/solr-{{ solr_version }}.tgz"
+        dest: "{{ solr_dir }}"
+        extra_opts:
+          - "--strip-components=1"
+        owner: "{{ solr_user }}"
+        group: "{{ solr_user }}"
+        creates: "{{ solr_dir }}/solr-{{ solr_version }}/bin"
+        remote_src: yes
+  when: not solr_installed.stat.exists
+
+- name: Write Solr env script
+  template:
+    src: templates/solr.in.sh.j2
+    dest: "{{ solr_dir }}/bin/solr.in.sh"
+  notify: Restart solr
+
+- name: Deploy Solr
+  block:
+    - name: Sym link Solr generic to versioned path
+      file:
+        src: "{{ solr_dir }}"
+        dest: "/opt/solr"
+        owner: "{{ solr_user }}"
+        group: "{{ solr_user }}"
+        state: link
+
+    - name: Check for solr.xml
+      stat:
+        path: "{{ solr_data_dir }}/data/solr.xml"
+      register: solr_xml_stat
+
+    - name: Copy solr.xml if missing
+      copy:
+        src: "{{ solr_dir }}/server/solr/solr.xml"
+        dest: "{{ solr_data_dir }}/data/solr.xml"
+        owner: "{{ solr_user }}"
+        group: "{{ solr_user }}"
+        remote_src: yes
+      notify: Restart solr
+      when: not solr_xml_stat.stat.exists
+
+    - name: Check for log4j.properties
+      stat:
+        path: "{{ solr_data_dir }}/log4j.properties"
+      register: solr_log4j2_stat
+
+    - name: Copy log4j.properties if missing
+      copy:
+        src: "{{ solr_dir }}/server/resources/log4j.properties"
+        dest: "{{ solr_data_dir }}/log4.properties"
+        owner: "{{ solr_user }}"
+        group: "{{ solr_user }}"
+        remote_src: yes
+      notify: Restart solr
+      when: not solr_log4j2_stat.stat.exists
+
+    # Can't validate systemdunits because it doesn't like tmp files that don't end
+    # in '.service' Why is there no module for this?
+    # https://github.com/ansible/ansible/issues/19243
+    - name: Write Solr SystemdUnit template
+      template:
+        src: templates/systemdUnit.j2
+        dest: /etc/systemd/system/solr.service
+      vars:
+        params: "{{ solr_systemd_params }}"
+      notify: Restart solr
+
+    - name: Validate SystemdUnit # noqa 305
+      shell: /bin/systemd-analyze verify /etc/systemd/system/solr.service
+      register: verify_result
+      changed_when: "verify_result.rc != 0"
+
+    - name: Enable and Start solr
+      systemd:
+        name: solr
+        state: started
+        enabled: yes
+        daemon_reload: yes
+  tags: deploy

@@ -1,0 +1,4 @@
+{% for h in zk_hosts %}
+server.{{ h.id }}={{ h.addr }}:{{ h.leader_port }}:{{ h.election_port }}{% if 'client_port' in h %};{{ h.client_port }}{% endif %}
+
+{% endfor %}

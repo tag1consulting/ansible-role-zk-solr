@@ -1,0 +1,29 @@
+---
+- name: Converge
+  hosts: all
+
+  vars:
+    zk_hosts:
+      - host: "zk-solr1"
+        addr: "10.0.1.111"
+        id: 1
+        leader_port: 2888
+        election_port: 3888
+        client_port: 2181
+      - host: "zk-solr2"
+        addr: "10.0.1.112"
+        id: 2
+        leader_port: 2888
+        election_port: 3888
+        client_port: 2181
+      - host: "zk-solr3"
+        addr: "10.0.1.113"
+        id: 3
+        leader_port: 2888
+        election_port: 3888
+        client_port: 2181
+
+  tasks:
+    - name: "Include ansible-role-zk-solr"
+      include_role:
+        name: "ansible-role-zk-solr"

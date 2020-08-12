@@ -1,0 +1,162 @@
+---
+- name: Get and set zk_checksum and zk_checksum_algo
+  block:
+    - name: Set zk_algo and path
+      set_fact:
+        zk_checksum_algo: "{{ 'sha1' if zk_version is version('3.5.5', '<') else 'sha512' }}"
+        zk_remote_path: "{{ 'zookeeper' if zk_version is version('3.5.5', '<') else 'apache-zookeeper' }}"
+
+    - name: Get Checksum
+      uri:
+        url: "{{ item }}zookeeper-{{ zk_version }}/{{ zk_remote_path }}-{{ zk_version }}{{ '-bin' if zk_version is version('3.5.5', '>=') }}.tar.gz.{{ zk_checksum_algo }}"
+        return_content: yes
+      loop: "{{ zk_mirrors }}"
+      register: _zk_checksum
+      ignore_errors: true
+
+    - name: Set zk_checksum
+      set_fact:
+        zk_checksum: "{{ item.content.split(' ')[0] }}"
+      when: item.failed == false
+      loop: "{{ _zk_checksum.results }}"
+  when: not zk_checksum_algo or not zk_checksum or not zk_remote_path
+
+- name: Assert zk_checksum and zk_checksum_algo are defined
+  assert:
+    that:
+      - zk_checksum != ""
+      - zk_checksum_algo != ""
+      - zk_remote_path != ""
+
+- name: Install OS packages
+  yum:
+    name: libselinux-python
+    state: present
+
+- name: Create Zookeeper group
+  group:
+    name: "{{ zk_user }}"
+    system: yes
+
+- name: Create Zookeeper user
+  user:
+    name: "{{ zk_user }}"
+    group: "{{ zk_user }}"
+    system: yes
+
+- name: Confirm src dir
+  file:
+    path: "{{ zk_tar_dir }}"
+    state: directory
+
+- name: "Create Zookeeper {{ item }} dir"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ zk_user }}"
+    group: "{{ zk_user }}"
+  loop:
+    - "{{ zk_data_dir }}"
+    - "{{ zk_log_dir }}"
+    - "{{ zk_dir }}"
+
+- name: Check if Zookeeper installed
+  stat:
+    path: "{{ zk_dir }}/bin"
+  register: zk_installed
+
+- name: Install Zookeeper
+  block:
+    - name: Download Zookeeper tarball
+      get_url:
+        url: "{{ item }}zookeeper-{{ zk_version }}/{{ zk_remote_path }}-{{ zk_version }}{{ '-bin' if zk_version is version('3.5.5', '>=') }}.tar.gz"
+        dest: "{{ zk_tar_dir }}/zookeeper-{{ zk_version }}.tar.gz"
+        checksum: "{{ zk_checksum_algo }}:{{ zk_checksum }}"
+      register: zk_down_res
+      ignore_errors: true
+      when: zk_down_res is undefined or zk_down_res.failed
+      with_items: "{{ zk_mirrors }}"
+
+    - name: Untar Zookeeper
+      unarchive:
+        src: "{{ zk_tar_dir }}/zookeeper-{{ zk_version }}.tar.gz"
+        dest: "{{ zk_dir }}"
+        extra_opts:
+          - "--strip-components=1"
+        owner: "{{ zk_user }}"
+        group: "{{ zk_user }}"
+        creates: "{{ zk_dir }}/zookeeper-{{ zk_version }}/bin"
+        remote_src: yes
+  when: not zk_installed.stat.exists
+
+- name: Check if Zookeeper is configured
+  stat:
+    path: "{{ zk_dir }}/conf/zoo.cfg"
+  register: zoo_cfg_stat
+
+- name: Write zoo.cfg and zoo.cfg.dynamic
+  block:
+    - name: Write zoo.cfg
+      template:
+        src: templates/zoo.j2
+        dest: "{{ zk_dir }}/conf/zoo.cfg"
+        owner: "{{ zk_user }}"
+        group: "{{ zk_user }}"
+      notify: Restart zk
+
+    - name: Write zoo.cfg.dynamic
+      template:
+        src: templates/zoo.dynamic.j2
+        dest: "{{ zk_conf_params.dynamicConfigFile }}"
+        owner: "{{ zk_user }}"
+        group: "{{ zk_user }}"
+      notify: Restart zk
+      when: zk_conf_params.dynamicConfigFile
+  when: (not zoo_cfg_stat.stat.exists) or zk_reconfigure
+
+- name: Write log4j config
+  template:
+    src: templates/zk-log4j.properties.j2
+    dest: "{{ zk_dir }}/conf/log4j.properties"
+    owner: "{{ zk_user }}"
+    group: "{{ zk_user }}"
+
+- name: Write myid file
+  template:
+    src: templates/myid.j2
+    dest: "{{ zk_data_dir }}/myid"
+    owner: "{{ zk_user }}"
+    group: "{{ zk_user }}"
+  notify: Restart zk
+
+- name: Write SystemdUnit Zookeeper
+  template:
+    src: templates/systemdUnit.j2
+    dest: /etc/systemd/system/zookeeper.service
+  vars:
+    params: "{{ zk_systemd_params }}"
+    # https://github.com/ansible/ansible/pull/51135
+  notify: Restart zk
+
+- name: Deploy Zookeeper
+  block:
+    - name: Sym link Zookeeper generic to versioned path
+      file:
+        src: "{{ zk_dir }}"
+        dest: "/opt/zookeeper"
+        owner: "{{ zk_user }}"
+        group: "{{ zk_user }}"
+        state: link
+
+    - name: Validate Zookeeper SystemdUnit # noqa 305
+      shell: /bin/systemd-analyze verify /etc/systemd/system/zookeeper.service
+      register: verify_result
+      changed_when: "verify_result.rc != 0"
+
+    - name: Enable and Start Zookeeper
+      systemd:
+        name: zookeeper
+        state: started
+        enabled: yes
+        daemon_reload: yes
+  tags: deploy

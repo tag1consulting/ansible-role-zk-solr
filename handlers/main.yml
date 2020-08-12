@@ -1,0 +1,16 @@
+---
+- name: Restart zk
+  systemd:
+    name: zookeeper
+    state: restarted
+    daemon_reload: yes
+  become: true
+  when: zk_deploy
+
+- name: Restart solr
+  systemd:
+    name: solr
+    state: restarted
+    daemon_reload: yes
+  become: true
+  when: solr_deploy

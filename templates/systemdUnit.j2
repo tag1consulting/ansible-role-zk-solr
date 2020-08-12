@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+
+[Unit]
+{% for key, val in params.unit.items() %}
+{{ key }}={{ val }}
+{% endfor %}
+
+[Service]
+{% for key, val in params.service.items() %}
+{{ key }}={{ val }}
+{% endfor %}
+
+[Install]
+{% for key, val in params.install.items() %}
+{{ key }}={{ val }}
+{% endfor %}
