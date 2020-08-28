@@ -8,7 +8,7 @@
 
     - name: Get Checksum
       uri:
-        url: "{{ item }}zookeeper-{{ zk_version }}/{{ zk_remote_path }}-{{ zk_version }}{{ '-bin' if zk_version is version('3.5.5', '>=') }}.tar.gz.{{ zk_checksum_algo }}"
+        url: "{{ item }}zookeeper-{{ zk_version }}/{{ zk_remote_path }}-{{ zk_version }}{{ '-bin' if zk_version is version('3.5.5', '>=') }}.tar.gz.{{ zk_checksum_algo }}" # noqa 204
         return_content: yes
       loop: "{{ zk_mirrors }}"
       register: _zk_checksum
@@ -17,7 +17,7 @@
     - name: Set zk_checksum
       set_fact:
         zk_checksum: "{{ item.content.split(' ')[0] }}"
-      when: item.failed == false
+      when: not item.failed
       loop: "{{ _zk_checksum.results }}"
   when: not zk_checksum_algo or not zk_checksum or not zk_remote_path
 
