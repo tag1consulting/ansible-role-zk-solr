@@ -1,6 +1,5 @@
 # https://github.com/ansible/ansible-lint/issues/457
 skip_list:
-  - '602'
+  - 602
   - skip_ansible_lint
-  - 103
 verbosity: 1
