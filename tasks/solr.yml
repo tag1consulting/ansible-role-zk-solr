@@ -16,7 +16,7 @@
     - name: Set solr_checksum
       set_fact:
         solr_checksum: "{{ item.content.split(' ')[0] }}"
-      when: item.failed == false
+      when: not item.failed
       loop: "{{ _solr_checksum.results }}"
   when: not solr_checksum_algo or not solr_checksum
 
