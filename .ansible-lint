@@ -2,5 +2,4 @@
 skip_list:
   - '602'
   - skip_ansible_lint
-  - 204
 verbosity: 1
