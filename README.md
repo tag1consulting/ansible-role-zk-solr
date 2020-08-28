@@ -13,8 +13,17 @@ Tested Platforms and [zookeeper]/[solr] versions
 Requirements
 ------------
 
-Recommended to run molecule in virtualenv. Once venv is activated, install requirements with
-`pip install -r requirements.txt`
+Recommended to run molecule in virtualenv.
+
+Create a virtualenv with:
+
+	`virtualenv --python=python3 <venv_name>`
+
+> Note: Recommended to create virtualenv outside repos root, eg. `~/.venvs/` Otherwise, linter will check virtualenv files and throw misleading errors
+
+Once venv is activated, install requirements with:
+
+	`pip install -r requirements.txt`
 
 Role can then be tested with `molecule converge`
 
