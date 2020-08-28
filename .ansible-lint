@@ -1,0 +1,5 @@
+skip_list:
+  - skip_ansible_lint
+  - 103
+  - 204
+verbosity: 1
