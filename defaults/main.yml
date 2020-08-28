@@ -76,7 +76,7 @@ zk_log_params:
     appender.TRACEFILE.layout: "org.apache.log4j.PatternLayout"
     appender.TRACEFILE.layout.ConversionPattern: "%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L][%x] - %m%n"
 
-  
+
 # Solr
 solr_version: "6.2.0"
 
@@ -85,8 +85,8 @@ solr_dir: "/opt/solr-{{ solr_version }}"
 solr_data_dir: /var/solr
 
 solr_mirrors:
-  - "https://apache.osuosl.org/lucene/solr/"
   - "https://archive.apache.org/dist/lucene/solr/"
+  - "https://apache.osuosl.org/lucene/solr/"
 
 solr_checksum: ""
 solr_checksum_algo: ""
