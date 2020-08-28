@@ -15,6 +15,9 @@ zk_checksum: ""
 zk_checksum_algo: ""
 zk_remote_path: ""
 
+zk_dependencies:
+  - libselinux-python
+
 zk_user: zookeeper
 zk_deploy: true
 zk_reconfigure: false
@@ -91,9 +94,16 @@ solr_mirrors:
 solr_checksum: ""
 solr_checksum_algo: ""
 
+solr_dependencies:
+  - lsof
+  - acl
+  - sudo
+
 solr_user: solr
 solr_deploy: true
 
+# SOLR_JAVA_MEM calculated based on targets total memory and is more aggressive if there is sufficient swap available.
+# This calculation assumes the nodes primary purpose is to host the solr service
 solr_params:
   SOLR_HOST: "{% for h in zk_hosts %}{% if h.host is defined %}{% if h.host == inventory_hostname %}{{ h.addr }}{% endif %}{% endif %}{% endfor %}"
   SOLR_JAVA_HOME: /usr/lib/jvm/jre-1.8.0

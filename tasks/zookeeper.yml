@@ -28,10 +28,11 @@
       - zk_checksum_algo != ""
       - zk_remote_path != ""
 
-- name: Install OS packages
+- name: Install Zookeeper dependencies
   yum:
-    name: libselinux-python
+    name: "{{ item }}"
     state: present
+  loop: "{{ zk_dependencies }}"
 
 - name: Create Zookeeper group
   group:

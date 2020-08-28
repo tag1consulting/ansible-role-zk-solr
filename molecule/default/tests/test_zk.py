@@ -43,12 +43,12 @@ def test_zk_files(host):
         assert tmp.user == 'zookeeper'
         assert tmp.group == 'zookeeper'
 
-# def test_zk_service(host):
-#     s = host.service('zookeeper')
-# 
-#     assert s.is_running
-#     assert s.is_enabled
-# 
-#     c = host.run('/opt/zookeeper/bin/zkServer.sh status')
-# 
-#     assert c.rc == 0
+def test_zk_service(host):
+    s = host.service('zookeeper')
+
+    assert s.is_running
+    assert s.is_enabled
+
+    c = host.run('sudo /opt/zookeeper/bin/zkServer.sh status')
+
+    assert c.rc == 0
