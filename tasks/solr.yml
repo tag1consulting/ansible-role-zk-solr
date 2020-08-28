@@ -74,6 +74,7 @@
         url: "{{ item }}/{{ solr_version }}/solr-{{ solr_version }}.tgz"
         dest: "{{ solr_tar_dir }}/solr-{{ solr_version }}.tgz"
         checksum: "{{ solr_checksum_algo }}:{{ solr_checksum }}"
+        mode: 0644
       register: solr_down_res
       ignore_errors: true
       when: solr_down_res is undefined or solr_down_res.failed
@@ -119,6 +120,7 @@
         owner: "{{ solr_user }}"
         group: "{{ solr_user }}"
         remote_src: yes
+        mode: 0644
       notify: Restart solr
       when: not solr_xml_stat.stat.exists
 
@@ -133,6 +135,7 @@
         dest: "{{ solr_data_dir }}/log4.properties"
         owner: "{{ solr_user }}"
         group: "{{ solr_user }}"
+        mode: 0644
         remote_src: yes
       notify: Restart solr
       when: not solr_log4j2_stat.stat.exists
@@ -144,6 +147,7 @@
       template:
         src: templates/systemdUnit.j2
         dest: /etc/systemd/system/solr.service
+        mode: 0644
       vars:
         params: "{{ solr_systemd_params }}"
       notify: Restart solr

@@ -72,6 +72,7 @@
         url: "{{ item }}zookeeper-{{ zk_version }}/{{ zk_remote_path }}-{{ zk_version }}{{ '-bin' if zk_version is version('3.5.5', '>=') }}.tar.gz"
         dest: "{{ zk_tar_dir }}/zookeeper-{{ zk_version }}.tar.gz"
         checksum: "{{ zk_checksum_algo }}:{{ zk_checksum }}"
+        mode: 0644
       register: zk_down_res
       ignore_errors: true
       when: zk_down_res is undefined or zk_down_res.failed
@@ -102,6 +103,7 @@
         dest: "{{ zk_dir }}/conf/zoo.cfg"
         owner: "{{ zk_user }}"
         group: "{{ zk_user }}"
+        mode: 0644
       notify: Restart zk
 
     - name: Write zoo.cfg.dynamic
@@ -110,6 +112,7 @@
         dest: "{{ zk_conf_params.dynamicConfigFile }}"
         owner: "{{ zk_user }}"
         group: "{{ zk_user }}"
+        mode: 0644
       notify: Restart zk
       when: zk_conf_params.dynamicConfigFile
   when: (not zoo_cfg_stat.stat.exists) or zk_reconfigure
@@ -120,6 +123,7 @@
     dest: "{{ zk_dir }}/conf/log4j.properties"
     owner: "{{ zk_user }}"
     group: "{{ zk_user }}"
+    mode: 0644
 
 - name: Write myid file
   template:
@@ -127,12 +131,14 @@
     dest: "{{ zk_data_dir }}/myid"
     owner: "{{ zk_user }}"
     group: "{{ zk_user }}"
+    mode: 0644
   notify: Restart zk
 
 - name: Write SystemdUnit Zookeeper
   template:
     src: templates/systemdUnit.j2
     dest: /etc/systemd/system/zookeeper.service
+    mode: 0644
   vars:
     params: "{{ zk_systemd_params }}"
     # https://github.com/ansible/ansible/pull/51135
