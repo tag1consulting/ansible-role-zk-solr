@@ -26,13 +26,11 @@
       - solr_checksum != ""
       - solr_checksum_algo != ""
 
-- name: Install OS packages
+- name: Install Solr dependencies
   yum:
-    name:
-      - lsof
-      - acl
-      - sudo
+    name: "{{ item }}"
     state: present
+  loop: "{{ solr_dependencies }}"
 
 - name: Create Solr group
   group:
@@ -58,11 +56,11 @@
     group: "{{ solr_user }}"
   with_items:
     - "{{ solr_dir }}"
-    - "{{ solr_data_dir }}"
+      #    - "{{ solr_data_dir }}"
     - "{{ solr_data_dir }}/data"
     - "{{ solr_data_dir }}/logs"
 
-- name: Check if Solr installed
+- name: Check if Solr is installed
   stat:
     path: "{{ solr_dir }}/bin"
   register: solr_installed
@@ -100,7 +98,7 @@
 
 - name: Deploy Solr
   block:
-    - name: Sym link Solr generic to versioned path
+    - name: Symlink Solr generic to versioned path
       file:
         src: "{{ solr_dir }}"
         dest: "/opt/solr"
