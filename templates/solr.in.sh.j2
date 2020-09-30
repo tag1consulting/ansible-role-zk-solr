@@ -29,7 +29,7 @@
 #-XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime"
 
 # These GC settings have shown to work well for a number of common Solr workloads
-GC_TUNE="{% for i in gc_tune %}-XX:{{ i }} \
+GC_TUNE="{% for i in solr_gc_tune %}-XX:{{ i }} \
 {% endfor %}"
 
 # Set the ZooKeeper connection string if using an external ZooKeeper ensemble

@@ -10,7 +10,8 @@ lint: |
   yamllint .
   ansible-lint
 platforms:
-  - name: zk-solr1
+  - &zk_solr_plat
+    name:  zk-solr1
     box: centos/7
     hostname: zk-solr1
     memory: 2048
@@ -28,11 +29,9 @@ platforms:
       ssh.keep_alive: yes
       ssh.remote_user: "'vagrant'"
 
-  - name: zk-solr2
-    box: centos/7
+  - <<: *zk_solr_plat
+    name: zk-solr2
     hostname: zk-solr2
-    memory: 2048
-    cpus: 1
     interfaces:
       - network_name: private_network
         ip: 10.0.1.112
@@ -41,16 +40,11 @@ platforms:
         host: 8888
       - network_name: forwarded_port
         guest: 8983
-        host: 8984
-    config_options:
-      ssh.keep_alive: yes
-      ssh.remote_user: "'vagrant'"
+        host: 8983
 
-  - name: zk-solr3
-    box: centos/7
+  - <<: *zk_solr_plat
+    name: zk-solr3
     hostname: zk-solr3
-    memory: 2048
-    cpus: 1
     interfaces:
       - network_name: private_network
         ip: 10.0.1.113
@@ -59,10 +53,7 @@ platforms:
         host: 8888
       - network_name: forwarded_port
         guest: 8983
-        host: 8985
-    config_options:
-      ssh.keep_alive: yes
-      ssh.remote_user: "'vagrant'"
+        host: 8983
 
 provisioner:
   name: ansible
