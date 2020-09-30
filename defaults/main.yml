@@ -81,11 +81,13 @@ zk_log_params:
 
 
 # Solr
-solr_version: "6.2.0"
+solr_version: "8.6.2"
 
 solr_tar_dir: /opt/src
 solr_dir: "/opt/solr-{{ solr_version }}"
 solr_data_dir: /var/solr
+# TODO Not sure which version they changed the log4j config
+solr_log4j_file: "{{ 'log4j.properties' if solr_version is version('8.0.0', '<') else 'log4j2.xml' }}"
 
 solr_mirrors:
   - "https://archive.apache.org/dist/lucene/solr/"
@@ -118,7 +120,7 @@ solr_params:
   SOLR_LOGS_DIR: "{{ solr_data_dir }}/logs"
   SOLR_PORT: 8983
 
-gc_tune:
+solr_gc_tune:
   - NewRatio=3
   - SurvivorRatio=4
   - TargetSurvivorRatio=90

@@ -5,9 +5,9 @@ Installs and deploys a Zookeeper managed Solr cluster.
 
 Tested Platforms and [zookeeper]/[solr] versions
 
-| Platform | 3.6.1 / 6.2.0 |
-| :------- | :-----------: |
-| centos/7 | &#x2611;       |
+| Platform | 3.6.1 / 6.2.0 | 3.6.1 / 8.6.2 |
+| :------- | :-----------: | :-----------: |
+| centos/7 | &#x2611;      | &#x2611;      |
 
 
 Requirements
