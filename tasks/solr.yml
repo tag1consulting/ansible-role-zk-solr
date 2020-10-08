@@ -56,7 +56,7 @@
     group: "{{ solr_user }}"
   with_items:
     - "{{ solr_dir }}"
-      #    - "{{ solr_data_dir }}"
+    - "{{ solr_data_dir }}"
     - "{{ solr_data_dir }}/data"
     - "{{ solr_data_dir }}/logs"
 
