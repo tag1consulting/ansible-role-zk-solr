@@ -16,3 +16,7 @@ skip_list:
   # hyphens which don't pass strict Galaxy namespace validation.
   - 'role-name'
 verbosity: 1
+exclude_paths:
+  # Legacy test playbook that references the role by a short name not resolvable
+  # without the role installed in a roles path; Molecule is used for testing.
+  - tests/
