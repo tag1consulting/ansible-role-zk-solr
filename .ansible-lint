@@ -11,4 +11,8 @@ skip_list:
   # Directory-creation tasks intentionally omit mode; permissions are
   # controlled by the owner/group parameters and system umask.
   - 'risky-file-permissions'
+  # The repository directory is named ansible-role-zk-solr following Ansible
+  # Galaxy naming conventions; the derived role name role-zk-solr contains
+  # hyphens which don't pass strict Galaxy namespace validation.
+  - 'role-name'
 verbosity: 1
