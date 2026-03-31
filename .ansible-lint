@@ -1,5 +1,14 @@
 # https://github.com/ansible/ansible-lint/issues/457
 skip_list:
-  - 602
+  - '602'
   - skip_ansible_lint
+  # Role targets Ansible 2.9 and uses short module names throughout; FQCN
+  # updates would require touching every task file.
+  - 'fqcn[action-core]'
+  # Several defaults values (e.g. leaderServes: yes) are written verbatim into
+  # ZooKeeper config files and must remain as bare YAML booleans.
+  - 'yaml[truthy]'
+  # Directory-creation tasks intentionally omit mode; permissions are
+  # controlled by the owner/group parameters and system umask.
+  - 'risky-file-permissions'
 verbosity: 1
