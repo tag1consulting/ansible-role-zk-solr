@@ -71,4 +71,4 @@ urllib3==2.6.3
 virtualenv==20.36.1
 websocket-client==0.57.0
 yamllint==1.24.2
-zipp==3.1.0
+zipp==3.19.1
