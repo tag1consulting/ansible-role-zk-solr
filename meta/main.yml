@@ -31,7 +31,7 @@ galaxy_info:
   platforms:
     - name: Centos
       versions:
-        - 7
+        - all
 
   galaxy_tags:
     - solr
