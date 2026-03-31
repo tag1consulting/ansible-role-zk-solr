@@ -55,7 +55,7 @@ python-gilt==1.2.3
 python-slugify==4.0.1
 python-vagrant==0.5.15
 PyYAML==5.4
-requests==2.24.0
+requests==2.33.0
 ruamel.yaml==0.16.10
 ruamel.yaml.clib==0.2.0
 selinux==0.2.1
