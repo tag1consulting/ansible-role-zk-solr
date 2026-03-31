@@ -155,7 +155,7 @@
         group: "{{ zk_user }}"
         state: link
 
-    - name: Validate Zookeeper SystemdUnit # noqa 305
+    - name: Validate Zookeeper SystemdUnit # noqa: command-instead-of-shell
       shell: /bin/systemd-analyze verify /etc/systemd/system/zookeeper.service
       register: verify_result
       changed_when: "verify_result.rc != 0"
