@@ -1,5 +1,5 @@
 ---
-- name: include java role
+- name: Include java role
   include_role:
     name: "geerlingguy.java"
   vars:
