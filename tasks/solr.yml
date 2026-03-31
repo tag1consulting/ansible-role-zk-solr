@@ -150,7 +150,7 @@
         params: "{{ solr_systemd_params }}"
       notify: Restart solr
 
-    - name: Validate SystemdUnit # noqa 305
+    - name: Validate SystemdUnit # noqa: command-instead-of-shell
       shell: /bin/systemd-analyze verify /etc/systemd/system/solr.service
       register: verify_result
       changed_when: "verify_result.rc != 0"
